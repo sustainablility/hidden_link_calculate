@@ -1,6 +1,8 @@
-import main
+from constructR import *
+from matchingPersuit import *
+from main import *
 
-userInfoFile = open("main_userInfo.json")
-diffusionInfoFile = open("main_diffusionInfo.json")
-outputFile = open("output.json","w")
-outputFile.write(main.main(userInfoFile.read(),diffusionInfoFile.read()))
+mainout = main('./main_userInfo_records.json','./main_diffusionInfo_records.json')
+rout = parallel_r_main(mainout)
+miniout = parallel_minimizer(rout)
+print(miniout)

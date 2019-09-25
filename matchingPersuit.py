@@ -70,7 +70,7 @@ def OrthogonalMP(A, b, tol=1E-6, nnz=None, positive=False):
 
 
 # NOTE: Standard Algorithm, e.g. Tropp, ``Greed is Good: Algorithmic Results for Sparse Approximation," IEEE Trans. Info. Theory, 2004.
-def MatchingPursuit(b, A, tol=1E-4, nnz=None, positive=True, orthogonal=False):
+def MatchingPursuit(x, tol=1E-4, nnz=None, positive=True, orthogonal=False):
   '''approximately solves min_x |x|_0 s.t. Ax=b using Matching Pursuit
   Args:
     A: design matrix of size (d, n)
@@ -82,8 +82,8 @@ def MatchingPursuit(b, A, tol=1E-4, nnz=None, positive=True, orthogonal=False):
   Returns:
      vector of length n
   '''
-  A = pd.read_json(A,orient='split')
-  b = pd.read_json(b,orient='split')
+  A = asarray(x[1])
+  b = asarray(x[0])
   if orthogonal:
     return OrthogonalMP(A, b, tol=tol, nnz=nnz, positive=positive)
 
@@ -128,6 +128,8 @@ def minimizer_L1(x):
     return edge_row
 
 def parallel_minimizer(xit_all):
-    xit_all=json.loads(xit_all)
+    cores = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(processes=cores)
+    xit_all=pd.read_json(xit_all,orient='records').values.tolist()
     edge_list = pool.map(MatchingPursuit, xit_all)
-    return json.dumps(xit_all)
+    return pd.Series(edge_list).to_json(orient='records')

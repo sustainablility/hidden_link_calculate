@@ -13,14 +13,13 @@ from scipy.linalg import solve
 from scipy.optimize import nnls
 import scipy
 
-
-def main(userInfo: object, diffusionInfo: object) -> object:
+def main(userInfo: object, diffusionInfo: object):
 
     #reading input data
     #data contains:feature vector, state
     #data=pd.read_csv(from_file,encoding='utf-8')
-    data=pd.read_json(userInfo,orient='split')
-
+    data=pd.read_json(userInfo,orient='records')
+    data.sort_values(by='0')
     ## get the features of nodes ##
     feature_sample=data[['node1_x','node1_y']]
     feature_sample.index=data.index
@@ -37,7 +36,8 @@ def main(userInfo: object, diffusionInfo: object) -> object:
     features=feature_sample.iloc[list(data_sample)]
     features.index=arange(len(data_sample))
     #spreading_sample=pd.read_csv('obs_500x300.csv',encoding='utf-8')
-    spreading_sample = pd.read_json(diffusionInfo,orient='split')
+    spreading_sample = pd.read_json(diffusionInfo,orient='records')
+    spreading_sample = spreading_sample.sort_values(by='user_id')
     spreading_sample.drop('user_id',axis=1,inplace=True)
     spreading=spreading_sample.values
 
@@ -67,10 +67,6 @@ def main(userInfo: object, diffusionInfo: object) -> object:
             l.append(features_matirx)
             l.append(bandwidth)
             rxt_params.append(l)
+    return pd.Series(rxt_params).to_json(orient='records')
 
-    return json.dumps(pd.Series(rxt_params).to_json(orient='split'))
-    
-    
-
-    
 

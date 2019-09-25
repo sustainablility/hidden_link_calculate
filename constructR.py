@@ -22,22 +22,30 @@ def gaussiankernel(x,z,args,N):
 def construct_rxt(x):
     #construct r(x,t) in paper
     kernel=[]
+    x[0]=asarray(x[0])
+    x[2] = asarray(x[2])
     n=x[2].shape[1]
-    bandwidth=x[3]
+    bandwidth=asarray(x[3])
     for row in x[2]:
         kernel.append(gaussiankernel(x[0],row,bandwidth,n))
-    rxt_upper=dot(kernel,x[1])
+    rxt_upper=dot(kernel,asarray(x[1]))
     rxt_lower=0
     for i in kernel:
         rxt_lower = rxt_lower+i
     rxt = rxt_upper/rxt_lower
+    if rxt > 0.999:
+        rxt = 0.999
+    elif rxt < 0.001:
+        rxt = 0.001
     return rxt
 
-def parallel_r_main(rxt_params,dt=0.1):
+def parallel_r_main(jsoninput,dt=0.1):
     #TO PANG:
     #you should make gaussiankernel a tool as well,
     #please do it yourself so you know what's the experience for other users to change their code.
-    rxt_params = json.loads(rxt_params)
+    input=pd.read_json(jsoninput,orient='records')
+    rxt_params=input.values.tolist()
+
     cores = multiprocessing.cpu_count()
     pool = multiprocessing.Pool(processes=cores)
     cnt = 0
@@ -47,7 +55,7 @@ def parallel_r_main(rxt_params,dt=0.1):
     # ...
     # r(x1,tm) .... r(xn,tm)
     rxt_list = pool.map(construct_rxt, rxt_params)
-    rxt_matrix=asarray(rxt_list).reshape(obs.shape[0],features_matirx.shape[0])
+    rxt_matrix=asarray(rxt_list).reshape(51,300)
     #construct all overline_r(x,t)
     overline_r_all=-log(1-rxt_matrix)
     # #get the D matrix
@@ -73,4 +81,4 @@ def parallel_r_main(rxt_params,dt=0.1):
         xit_matrix.append(xit)
         xit_matrix.append(D)
         xit_all.append(xit_matrix)
-    return json.dumps(xit_all)
+    return pd.Series(xit_all).to_json(orient='records')
