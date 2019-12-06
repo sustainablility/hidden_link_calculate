@@ -1,7 +1,9 @@
-import requests
-import json
-url = 'http://127.0.0.1:2223/putData'
-testOpen = json.loads(open("test.json").read())
 
-r = requests.post(url, json=testOpen).text
-print(r)
+def recu(integer):
+    if integer > 0:
+        return integer + recu(integer - 1)
+    else:
+        return integer
+
+print(recu(3))
+# expect : 6

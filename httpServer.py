@@ -2,7 +2,9 @@ from flask import Flask, escape, request, make_response
 from flask_cors import CORS
 import json
 import requests
-import main
+from constructR import *
+from matchingPersuit import *
+from main import *
 
 app = Flask(__name__)
 CORS(app, resources=r'/*')
@@ -10,6 +12,8 @@ CORS(app, resources=r'/*')
 @app.route('/', methods= ["GET","POST"])
 def hello():
     if(request.method == "POST"):
+
+
         bodyData = request.get_json()
         dataForTool = []
         for data in bodyData[1:]:
@@ -19,20 +23,48 @@ def hello():
             else:
                 dataForTool.append(data)
 
-        outputT = open("test.json","w")
-        outputT.write(main.main(json.dumps(dataForTool[0]),json.dumps(dataForTool[1])))
-        result = json.loads(main.main(json.dumps(dataForTool[0]),json.dumps(dataForTool[1])))
-        resultDataId = requests.post("http://127.0.0.1:2223/putData", json=result).text
-        resultSend = json.dumps(["http://127.0.0.1:2223/getData?" + resultDataId])
-        response = make_response(resultSend)
+        if bodyData[0] == "Main":
+
+
+            result = json.loads(main(json.dumps(dataForTool[0]),json.dumps(dataForTool[1])))
+            resultDataId = requests.post("http://127.0.0.1:2223/putData", json=result).text
+            resultSend = json.dumps(["http://127.0.0.1:2223/getData?" + resultDataId])
+            response = make_response(resultSend)
+
+        elif bodyData[0] == "parallel_r_main":
+
+            result = json.loads(parallel_r_main(json.dumps(dataForTool[0])))
+            resultDataId = requests.post("http://127.0.0.1:2223/putData", json=result).text
+            resultSend = json.dumps(["http://127.0.0.1:2223/getData?" + resultDataId])
+            response = make_response(resultSend)
+
+        elif bodyData[0] == "parallel_minimizer":
+
+            result = json.loads(parallel_minimizer(json.dumps(dataForTool[0])))
+            resultDataId = requests.post("http://127.0.0.1:2223/putData", json=result).text
+            resultSend = json.dumps(["http://127.0.0.1:2223/getData?" + resultDataId])
+            response = make_response(resultSend)
+
+
+
     elif(request.method == "GET"):
         apiInfo = {
         "name": "Hidden",
         "desc": "Hidden Link Calculate",
         "methods": [
             {
-                "name": "Analysis",
+                "name": "Main",
                 "parameter": ["UserInfo","DiffusionInfo"],
+                "output": ["Result"]
+            },
+            {
+                "name": "parallel_r_main",
+                "parameter": ["Data"],
+                "output": ["Result"]
+            },
+            {
+                "name": "parallel_minimizer",
+                "parameter": ["Data"],
                 "output": ["Result"]
             }
         ]
